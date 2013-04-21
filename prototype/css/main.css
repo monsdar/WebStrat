@@ -1,0 +1,42 @@
+.court {
+  background-color: #FFD5A6;
+  width: 400px;
+  height: 300px;
+  z-index:-1;
+}
+
+.ball {
+  background-color: #E06D1B;
+  width: 20px;
+  height: 20px;
+  z-index:10;
+  
+  border-style:solid;
+  border-width:2px;
+  border-color: #000000;
+  border-radius: 11px;
+}
+
+.player {
+  width: 30px;
+  height: 30px;
+  
+  border-style:solid;
+  border-width:2px;
+  border-color: #000000;
+  border-radius: 10px;
+  
+  text-align:center;
+  font-family: sans-serif;
+  font-weight:bold;
+}
+
+.friendly {
+  background-color: #9DB9FC;
+  z-index:7;
+}
+
+.opponent {
+  background-color: #FC7E7E;
+  z-index:5;
+}
