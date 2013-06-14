@@ -1,13 +1,35 @@
 
-
-//global variable which stores the current step
-var currentStep = 0;
+function Step() {
+    this.currentStep = 0;
+};
+Step.prototype.increaseStep = function() {
+    this.currentStep++;
+    
+    //TODO: How to split between Business logic (this class) and View (HTML element)?
+    $("h1").text("Step: " + this.currentStep);
+};
+Step.prototype.decreaseStep = function() {
+    this.currentStep--;
+    
+    //TODO: How to split between Business logic (this class) and View (HTML element)?
+    $("h1").text("Step: " + this.currentStep);
+};
+Step.prototype.setStep = function(step) {
+    this.currentStep = step;
+    
+    //TODO: How to split between Business logic (this class) and View (HTML element)?
+    $("h1").text("Step: " + this.currentStep);
+};
+Step.prototype.getStep = function() {
+    return this.currentStep;
+};
 
 //Declare some classes to store our code into (OOP in JS baby!)
-function Symbol(identifier, name) {
+function Symbol(identifier, name, step) {
     this.identifier = identifier;
     this.orientation = 0; //DEG, clockwise
     this.name = name;
+    this.step = step;
     this.classes = "";
     
     //get a starting position
@@ -18,14 +40,16 @@ function Symbol(identifier, name) {
     this.positions[0] = position; 
 };
 
-Symbol.prototype.getHtml = function(step) {
+Symbol.prototype.getHtml = function() {
     //get the coords
     var posX = "0px";
     var posY = "0px";
+    var currentStep = this.step.getStep();
     
-    if(step in this.positions) {
-        posX = this.positions[step].posX;
-        posY = this.positions[step].posY;
+    
+    if(currentStep in this.positions) {
+        posX = this.positions[currentStep].posX;
+        posY = this.positions[currentStep].posY;
     }
     
     var html = "";
@@ -40,31 +64,36 @@ Symbol.prototype.getHtml = function(step) {
     return html;
 };
 
-Symbol.prototype.setPosition = function(step, posX, posY) {
+Symbol.prototype.setPosition = function(posX, posY) {
+    var currentStep = this.step.getStep();
     var newPosition = {};
     newPosition.posX = posX; //px from left
     newPosition.posY = posY; //px from top
-    this.positions[step] = newPosition;
+    this.positions[currentStep] = newPosition;
 };
 
-Symbol.prototype.getPosX = function(step) {
-    while(step >= 0) {
-        if(step in this.positions) {
-            return this.positions[step].posX;
+Symbol.prototype.getPosX = function() {
+    var currentStep = this.step.getStep();
+    
+    while(currentStep >= 0) {
+        if(currentStep in this.positions) {
+            return this.positions[currentStep].posX;
         }
-        step--;
+        currentStep--;
     }
     
     //Fallback if there are no positions saved to return
     return "0px";
 };
 
-Symbol.prototype.getPosY = function(step) {
-    while(step >= 0) {
-        if(step in this.positions) {
-            return this.positions[step].posY;
+Symbol.prototype.getPosY = function() {
+    var currentStep = this.step.getStep();
+    
+    while(currentStep >= 0) {
+        if(currentStep in this.positions) {
+            return this.positions[currentStep].posY;
         }
-        step--;
+        currentStep--;
     }
     
     //Fallback if there are no positions saved to return
@@ -85,29 +114,29 @@ Symbol.prototype.makeDraggable = function() {
         stop: function() {
             var posX = symbol.getElement().css('left');
             var posY = symbol.getElement().css('top');
-            symbol.setPosition(currentStep, posX, posY);
+            symbol.setPosition(posX, posY);
             
             console.log(posX + ", " + posY);
         }
     });
 };
 
-function Ball(identifier) {
-    Symbol.call(this, identifier, "");
+function Ball(identifier, step) {
+    Symbol.call(this, identifier, "", step);
     this.classes = "ball";
 }
 Ball.prototype = new Symbol();
 Ball.prototype.constructor = Ball;
 
-function Friend(identifier, name) {
-    Symbol.call(this, identifier, name);
+function Friend(identifier, name, step) {
+    Symbol.call(this, identifier, name, step);
     this.classes = "friend player";
 }
 Friend.prototype = new Symbol();
 Friend.prototype.constructor = Friend;
 
-function Opponent(identifier, name) {
-    Symbol.call(this, identifier, name);
+function Opponent(identifier, name, step) {
+    Symbol.call(this, identifier, name, step);
     this.classes = "opponent player";
 }
 Opponent.prototype = new Symbol();
@@ -115,20 +144,20 @@ Opponent.prototype.constructor = Opponent;
 
 //some global functions which help do certain things
 //NOTE: This function uses a <div> of class .court as a parent
-var updateSymbols = function(symbols, step) {
+var updateSymbols = function(symbols) {
     $.each(symbols, function(index, item) {
         var element = item.getElement();
         
         //check if the symbol has been created yet
         //if not, create it
         if( element.length <= 0 ) {
-            $(".court").append( item.getHtml(step) );
+            $(".court").append( item.getHtml() );
             item.makeDraggable();
         //if so, animate it to the next position
         } else {
             element.animate(
-              {top: item.getPosY(currentStep),
-               left: item.getPosX(currentStep)}, 
+              {top: item.getPosY(),
+               left: item.getPosX()}, 
               200
             );
         }
@@ -140,45 +169,45 @@ var outputSymbols = function(symbols) {
     $("textarea#outputText").val(output);
 };
 
-var initSymbols = function() {
+var initSymbols = function(step) {
     //ball
-    var ball = new Ball("ball");
+    var ball = new Ball("ball", step);
     ball.side = "neutral";
-    ball.setPosition(0, "255px", "340px");
+    ball.setPosition("255px", "340px");
     
     //friendly players
-    var myplayer1 = new Friend("myplayer1", "PG");
-    var myplayer2 = new Friend("myplayer2", "SG");
-    var myplayer3 = new Friend("myplayer3", "SF");
-    var myplayer4 = new Friend("myplayer4", "PF");
-    var myplayer5 = new Friend("myplayer5", "C");
+    var myplayer1 = new Friend("myplayer1", "PG", step);
+    var myplayer2 = new Friend("myplayer2", "SG", step);
+    var myplayer3 = new Friend("myplayer3", "SF", step);
+    var myplayer4 = new Friend("myplayer4", "PF", step);
+    var myplayer5 = new Friend("myplayer5", "C", step);
     myplayer1.side = "friendly";
     myplayer2.side = "friendly";
     myplayer3.side = "friendly";
     myplayer4.side = "friendly";
     myplayer5.side = "friendly";
-    myplayer1.setPosition(0, "235px", "300px");
-    myplayer2.setPosition(0, "80px", "165px");
-    myplayer3.setPosition(0, "370px", "140px");
-    myplayer4.setPosition(0, "150px", "-120px");
-    myplayer5.setPosition(0, "315px", "-155px");
+    myplayer1.setPosition("235px", "300px");
+    myplayer2.setPosition("80px", "165px");
+    myplayer3.setPosition("370px", "140px");
+    myplayer4.setPosition("150px", "-120px");
+    myplayer5.setPosition("315px", "-155px");
     
     //opponent players
-    var oppplayer1 = new Opponent("oppplayer1", "PG");
-    var oppplayer2 = new Opponent("oppplayer2", "SG");
-    var oppplayer3 = new Opponent("oppplayer3", "SF");
-    var oppplayer4 = new Opponent("oppplayer4", "PF");
-    var oppplayer5 = new Opponent("oppplayer5", "C");
+    var oppplayer1 = new Opponent("oppplayer1", "PG", step);
+    var oppplayer2 = new Opponent("oppplayer2", "SG", step);
+    var oppplayer3 = new Opponent("oppplayer3", "SF", step);
+    var oppplayer4 = new Opponent("oppplayer4", "PF", step);
+    var oppplayer5 = new Opponent("oppplayer5", "C", step);
     oppplayer1.side = "opponent";
     oppplayer2.side = "opponent";
     oppplayer3.side = "opponent";
     oppplayer4.side = "opponent";
     oppplayer5.side = "opponent";
-    oppplayer1.setPosition(0, "235px", "90px");
-    oppplayer2.setPosition(0, "100px", "-20px");
-    oppplayer3.setPosition(0, "350px", "-50px");
-    oppplayer4.setPosition(0, "170px", "-270px");
-    oppplayer5.setPosition(0, "300px", "-300px");
+    oppplayer1.setPosition("235px", "90px");
+    oppplayer2.setPosition("100px", "-20px");
+    oppplayer3.setPosition("350px", "-50px");
+    oppplayer4.setPosition("170px", "-270px");
+    oppplayer5.setPosition("300px", "-300px");
     
     //put every Symbol into a symbol-list
     var symbols = new Array();
@@ -201,42 +230,26 @@ var removeSymbols = function() {
     $(".draggable").remove();
 };
 
-var makeDraggable = function(symbols) {
-    //make the symbols draggable, store values for them
-    $( ".draggable" ).draggable({
-        containment: "parent",
-
-        stop: function() {
-            var identifier = $(this).attr('id');
-            $.each(symbols, function(index, item) {
-               if( identifier === item.identifier) {
-                   var posX = $("#" + identifier).css('left');
-                   var posY = $("#" + identifier).css('top');
-                   item.setPosition(currentStep, posX, posY);
-               }
-            });
-        }
-    });  
-};
-
 //And here is our document.ready which sets up the entire thing
 $(document).ready(function() {  
     
+    //create the step
+    var step = new Step();
+    
     //append the items to the court
-    var symbols = initSymbols();
-    updateSymbols(symbols, currentStep);
+    var symbols = initSymbols(step);
+    updateSymbols(symbols);
     
     //initially disable the 'previous' button
     $('input[name="prevStep"]').attr("disabled", "disabled");
     
     //Set up Event Handlers for the buttons
     $('input[name="prevStep"]').click(function(){
-        currentStep--;
-        $("h1").text("Step: " + currentStep);
-        updateSymbols(symbols, currentStep);
+        step.decreaseStep();
+        updateSymbols(symbols);
         
         //check if the previous-button has to be disabled
-        if(currentStep === 0) {
+        if(step.getStep() === 0) {
             $('input[name="prevStep"]').attr("disabled", "disabled");
         } else {
             $('input[name="prevStep"]').removeAttr("disabled");
@@ -244,9 +257,8 @@ $(document).ready(function() {
     });
 
     $('input[name="nextStep"]').click(function(){
-        currentStep++;
-        $("h1").text("Step: " + currentStep);    
-        updateSymbols(symbols, currentStep);
+        step.increaseStep();  
+        updateSymbols(symbols);
         
         //enable the previous-button
         $('input[name="prevStep"]').removeAttr("disabled");
@@ -261,19 +273,23 @@ $(document).ready(function() {
         symbols = [];
         var jsonSymbols = jQuery.parseJSON( $("textarea#outputText").val() );
         $.each(jsonSymbols, function(index, jsonItem) {
+            var newSymbol;
+            
+            //init the symbol with its right childclass
+            //TODO: Is there a way to do this automatically?
             if(jsonItem.classes.indexOf("ball") !== -1) {
                 var newSymbol = $.extend(new Ball(), jsonItem);
-                symbols.push(newSymbol);
             } else if(jsonItem.classes.indexOf("friend") !== -1) {
                 var newSymbol = $.extend(new Friend(), jsonItem);
-                symbols.push(newSymbol);
             } else if(jsonItem.classes.indexOf("opponent") !== -1) {
                 var newSymbol = $.extend(new Opponent(), jsonItem);
-                symbols.push(newSymbol);
             }
+            
+            newSymbol.step = step;
+            symbols.push(newSymbol);
         });
-               
-        currentStep = 0;
-        updateSymbols(symbols, 0);
+        
+        step.setStep(0);
+        updateSymbols(symbols);
     });
 });
