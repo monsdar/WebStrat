@@ -15,14 +15,15 @@ function Symbol(identifier, name) {
     position.posX = "0px"; //px from left
     position.posY = "0px"; //px from top
     this.positions = new Array();
-    this.positions[0] = position;
+    this.positions[0] = position; 
 };
 
 Symbol.prototype.getHtml = function(step) {
     //get the coords
     var posX = "0px";
     var posY = "0px";
-    if(step < this.positions.length) {
+    
+    if(step in this.positions) {
         posX = this.positions[step].posX;
         posY = this.positions[step].posY;
     }
@@ -30,11 +31,12 @@ Symbol.prototype.getHtml = function(step) {
     var html = "";
     html = html + "<div ";
     html = html + "    class='draggable " + this.classes + "' ";
-    html = html + "    style='top: " + posY + "px; left: " + posX + "px' ";
+    html = html + "    style='top: " + posY + "; left: " + posX + "' ";
     html = html + "    id='" + this.identifier + "' ";
     html = html + ">";
     html = html + this.name;
     html = html + "</div>";
+    
     return html;
 };
 
@@ -43,8 +45,6 @@ Symbol.prototype.setPosition = function(step, posX, posY) {
     newPosition.posX = posX; //px from left
     newPosition.posY = posY; //px from top
     this.positions[step] = newPosition;
-    
-    console.log( this.identifier + " Position " + step + " [x,y]: " + posX + "," + posY);
 };
 
 Symbol.prototype.getPosX = function(step) {
@@ -69,6 +69,27 @@ Symbol.prototype.getPosY = function(step) {
     
     //Fallback if there are no positions saved to return
     return "0px";
+};
+
+Symbol.prototype.getElement = function() {
+    return $("#" + this.identifier);
+};
+
+Symbol.prototype.makeDraggable = function() {
+    //make the symbols draggable, store values for them
+    var symbol = this;
+    
+    this.getElement().draggable({
+        containment: "parent",
+
+        stop: function() {
+            var posX = symbol.getElement().css('left');
+            var posY = symbol.getElement().css('top');
+            symbol.setPosition(currentStep, posX, posY);
+            
+            console.log(posX + ", " + posY);
+        }
+    });
 };
 
 function Ball(identifier) {
@@ -96,13 +117,13 @@ Opponent.prototype.constructor = Opponent;
 //NOTE: This function uses a <div> of class .court as a parent
 var updateSymbols = function(symbols, step) {
     $.each(symbols, function(index, item) {
-        
-        var element = $("#" + item.identifier);
+        var element = item.getElement();
         
         //check if the symbol has been created yet
         //if not, create it
         if( element.length <= 0 ) {
             $(".court").append( item.getHtml(step) );
+            item.makeDraggable();
         //if so, animate it to the next position
         } else {
             element.animate(
@@ -114,10 +135,16 @@ var updateSymbols = function(symbols, step) {
     });
 };
 
-//And here is our document.ready which sets up the entire thing
-$(document).ready(function() {    
+var outputSymbols = function(symbols) {
+    var output = JSON.stringify(symbols);
+    $("textarea#outputText").val(output);
+};
+
+var initSymbols = function() {
     //ball
     var ball = new Ball("ball");
+    ball.side = "neutral";
+    ball.setPosition(0, "255px", "340px");
     
     //friendly players
     var myplayer1 = new Friend("myplayer1", "PG");
@@ -130,6 +157,11 @@ $(document).ready(function() {
     myplayer3.side = "friendly";
     myplayer4.side = "friendly";
     myplayer5.side = "friendly";
+    myplayer1.setPosition(0, "235px", "300px");
+    myplayer2.setPosition(0, "80px", "165px");
+    myplayer3.setPosition(0, "370px", "140px");
+    myplayer4.setPosition(0, "150px", "-120px");
+    myplayer5.setPosition(0, "315px", "-155px");
     
     //opponent players
     var oppplayer1 = new Opponent("oppplayer1", "PG");
@@ -142,6 +174,11 @@ $(document).ready(function() {
     oppplayer3.side = "opponent";
     oppplayer4.side = "opponent";
     oppplayer5.side = "opponent";
+    oppplayer1.setPosition(0, "235px", "90px");
+    oppplayer2.setPosition(0, "100px", "-20px");
+    oppplayer3.setPosition(0, "350px", "-50px");
+    oppplayer4.setPosition(0, "170px", "-270px");
+    oppplayer5.setPosition(0, "300px", "-300px");
     
     //put every Symbol into a symbol-list
     var symbols = new Array();
@@ -156,25 +193,38 @@ $(document).ready(function() {
     symbols.push(oppplayer3);
     symbols.push(oppplayer4);
     symbols.push(oppplayer5);
+        
+    return symbols;
+};
+
+var removeSymbols = function() {
+    $(".draggable").remove();
+};
+
+var makeDraggable = function(symbols) {
+    //make the symbols draggable, store values for them
+    $( ".draggable" ).draggable({
+        containment: "parent",
+
+        stop: function() {
+            var identifier = $(this).attr('id');
+            $.each(symbols, function(index, item) {
+               if( identifier === item.identifier) {
+                   var posX = $("#" + identifier).css('left');
+                   var posY = $("#" + identifier).css('top');
+                   item.setPosition(currentStep, posX, posY);
+               }
+            });
+        }
+    });  
+};
+
+//And here is our document.ready which sets up the entire thing
+$(document).ready(function() {  
     
     //append the items to the court
+    var symbols = initSymbols();
     updateSymbols(symbols, currentStep);
-    
-    //make the symbols draggable, store values for them
-    $( ".draggable" ).draggable({ 
-    containment: "parent",
-    
-    stop: function() {
-        var identifier = $(this).attr('id');
-        $.each(symbols, function(index, item) {
-           if( identifier === item.identifier) {
-               var posX = $("#" + identifier).css('left');
-               var posY = $("#" + identifier).css('top');
-               item.setPosition(currentStep, posX, posY);
-           }
-        });
-    } 
-    });
     
     //initially disable the 'previous' button
     $('input[name="prevStep"]').attr("disabled", "disabled");
@@ -200,5 +250,30 @@ $(document).ready(function() {
         
         //enable the previous-button
         $('input[name="prevStep"]').removeAttr("disabled");
+    });
+    
+    $('input[name="output"]').click(function(){
+        outputSymbols(symbols);
+    });
+    
+    $('input[name="load"]').click(function(){
+        removeSymbols();
+        symbols = [];
+        var jsonSymbols = jQuery.parseJSON( $("textarea#outputText").val() );
+        $.each(jsonSymbols, function(index, jsonItem) {
+            if(jsonItem.classes.indexOf("ball") !== -1) {
+                var newSymbol = $.extend(new Ball(), jsonItem);
+                symbols.push(newSymbol);
+            } else if(jsonItem.classes.indexOf("friend") !== -1) {
+                var newSymbol = $.extend(new Friend(), jsonItem);
+                symbols.push(newSymbol);
+            } else if(jsonItem.classes.indexOf("opponent") !== -1) {
+                var newSymbol = $.extend(new Opponent(), jsonItem);
+                symbols.push(newSymbol);
+            }
+        });
+               
+        currentStep = 0;
+        updateSymbols(symbols, 0);
     });
 });
