@@ -1,4 +1,24 @@
 
+function Storage() {
+};
+Storage.prototype.store = function(symbols) {  
+};
+Storage.prototype.load = function(URI) {  
+};
+
+function PastebinStorage() {
+    Storage.call(this);
+}
+PastebinStorage.prototype = new Storage();
+PastebinStorage.prototype.constructor = PastebinStorage;
+
+PastebinStorage.prototype.store = function(symbols) {
+    
+};
+PastebinStorage.prototype.load = function(URI) {
+    
+};
+
 function Step() {
     this.currentStep = 0;
 };
@@ -76,7 +96,7 @@ Symbol.prototype.getPosX = function() {
     var currentStep = this.step.getStep();
     
     while(currentStep >= 0) {
-        if(currentStep in this.positions) {
+        if(currentStep in this.positions && this.positions[currentStep] !== null) {
             return this.positions[currentStep].posX;
         }
         currentStep--;
@@ -90,7 +110,7 @@ Symbol.prototype.getPosY = function() {
     var currentStep = this.step.getStep();
     
     while(currentStep >= 0) {
-        if(currentStep in this.positions) {
+        if(currentStep in this.positions && this.positions[currentStep] !== null) {
             return this.positions[currentStep].posY;
         }
         currentStep--;
@@ -231,7 +251,7 @@ var removeSymbols = function() {
 };
 
 //And here is our document.ready which sets up the entire thing
-$(document).ready(function() {  
+$(document).ready(function() {
     
     //create the step
     var step = new Step();
