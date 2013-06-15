@@ -1,7 +1,7 @@
 
 function Storage() {
 };
-Storage.prototype.store = function(symbols) {  
+Storage.prototype.store = function(data, callback) {  
 };
 Storage.prototype.load = function(URI, callback) {  
 };
@@ -12,10 +12,15 @@ function PastebinStorage() {
 PastebinStorage.prototype = new Storage();
 PastebinStorage.prototype.constructor = PastebinStorage;
 
-PastebinStorage.prototype.store = function(symbols) {
+PastebinStorage.prototype.store = function(data, callback) {
+    $.get("PastebinProxy.php", {type: "save", data: data}, function(returnedData) {
+        console.log("Received data: ");
+        console.log(returnedData);
+        callback(returnedData);
+    });
 };
 PastebinStorage.prototype.load = function(URI, callback) {
-    $.get("proxy.php", {pasteId: URI}, function(data) {
+    $.get("PastebinProxy.php", {type: "load", pasteId: URI}, function(data) {
         callback(data);
     });
 };
@@ -66,7 +71,6 @@ Symbol.prototype.getHtml = function() {
     var posX = "0px";
     var posY = "0px";
     var currentStep = this.step.getStep();
-    
     
     if(currentStep in this.positions) {
         posX = this.positions[currentStep].posX;
@@ -185,11 +189,6 @@ var updateSymbols = function(symbols) {
     });
 };
 
-var outputSymbols = function(symbols) {
-    var output = JSON.stringify(symbols);
-    $("textarea#outputText").val(output);
-};
-
 var initSymbols = function(step) {
     //ball
     var ball = new Ball("ball", step);
@@ -284,8 +283,17 @@ $(document).ready(function() {
         $('input[name="prevStep"]').removeAttr("disabled");
     });
     
-    $('input[name="output"]').click(function(){
-        outputSymbols(symbols);
+    $('input[name="save"]').click(function(){
+        var json = JSON.stringify(symbols);
+        
+        //create a callback that works with the result
+        var callback = function(data) {
+            $("textarea#outputText").val(data);
+        };
+        
+        //create a storage
+        var storage = new PastebinStorage();
+        storage.store(json, callback);
     });
     
     $('input[name="load"]').click(function(){
