@@ -3,7 +3,7 @@ function Storage() {
 };
 Storage.prototype.store = function(symbols) {  
 };
-Storage.prototype.load = function(URI) {  
+Storage.prototype.load = function(URI, callback) {  
 };
 
 function PastebinStorage() {
@@ -13,10 +13,11 @@ PastebinStorage.prototype = new Storage();
 PastebinStorage.prototype.constructor = PastebinStorage;
 
 PastebinStorage.prototype.store = function(symbols) {
-    
 };
-PastebinStorage.prototype.load = function(URI) {
-    
+PastebinStorage.prototype.load = function(URI, callback) {
+    $.get("proxy.php", {pasteId: URI}, function(data) {
+        callback(data);
+    });
 };
 
 function Step() {
@@ -196,11 +197,11 @@ var initSymbols = function(step) {
     ball.setPosition("255px", "340px");
     
     //friendly players
-    var myplayer1 = new Friend("myplayer1", "PG", step);
-    var myplayer2 = new Friend("myplayer2", "SG", step);
-    var myplayer3 = new Friend("myplayer3", "SF", step);
-    var myplayer4 = new Friend("myplayer4", "PF", step);
-    var myplayer5 = new Friend("myplayer5", "C", step);
+    var myplayer1 = new Friend("myplayer1", "1", step);
+    var myplayer2 = new Friend("myplayer2", "2", step);
+    var myplayer3 = new Friend("myplayer3", "3", step);
+    var myplayer4 = new Friend("myplayer4", "4", step);
+    var myplayer5 = new Friend("myplayer5", "5", step);
     myplayer1.side = "friendly";
     myplayer2.side = "friendly";
     myplayer3.side = "friendly";
@@ -213,11 +214,11 @@ var initSymbols = function(step) {
     myplayer5.setPosition("315px", "-155px");
     
     //opponent players
-    var oppplayer1 = new Opponent("oppplayer1", "PG", step);
-    var oppplayer2 = new Opponent("oppplayer2", "SG", step);
-    var oppplayer3 = new Opponent("oppplayer3", "SF", step);
-    var oppplayer4 = new Opponent("oppplayer4", "PF", step);
-    var oppplayer5 = new Opponent("oppplayer5", "C", step);
+    var oppplayer1 = new Opponent("oppplayer1", "1", step);
+    var oppplayer2 = new Opponent("oppplayer2", "2", step);
+    var oppplayer3 = new Opponent("oppplayer3", "3", step);
+    var oppplayer4 = new Opponent("oppplayer4", "4", step);
+    var oppplayer5 = new Opponent("oppplayer5", "5", step);
     oppplayer1.side = "opponent";
     oppplayer2.side = "opponent";
     oppplayer3.side = "opponent";
@@ -251,8 +252,7 @@ var removeSymbols = function() {
 };
 
 //And here is our document.ready which sets up the entire thing
-$(document).ready(function() {
-    
+$(document).ready(function() {    
     //create the step
     var step = new Step();
     
@@ -291,25 +291,34 @@ $(document).ready(function() {
     $('input[name="load"]').click(function(){
         removeSymbols();
         symbols = [];
-        var jsonSymbols = jQuery.parseJSON( $("textarea#outputText").val() );
-        $.each(jsonSymbols, function(index, jsonItem) {
-            var newSymbol;
-            
-            //init the symbol with its right childclass
-            //TODO: Is there a way to do this automatically?
-            if(jsonItem.classes.indexOf("ball") !== -1) {
-                var newSymbol = $.extend(new Ball(), jsonItem);
-            } else if(jsonItem.classes.indexOf("friend") !== -1) {
-                var newSymbol = $.extend(new Friend(), jsonItem);
-            } else if(jsonItem.classes.indexOf("opponent") !== -1) {
-                var newSymbol = $.extend(new Opponent(), jsonItem);
-            }
-            
-            newSymbol.step = step;
-            symbols.push(newSymbol);
-        });
         
-        step.setStep(0);
-        updateSymbols(symbols);
+        //create the callback which is called as soon as the data is received
+        var callback = function(data) {
+            var jsonSymbols = jQuery.parseJSON( data );      
+            $.each(jsonSymbols, function(index, jsonItem) {
+                var newSymbol;
+
+                //init the symbol with its right childclass
+                //TODO: Is there a way to do this automatically?
+                if(jsonItem.classes.indexOf("ball") !== -1) {
+                    var newSymbol = $.extend(new Ball(), jsonItem);
+                } else if(jsonItem.classes.indexOf("friend") !== -1) {
+                    var newSymbol = $.extend(new Friend(), jsonItem);
+                } else if(jsonItem.classes.indexOf("opponent") !== -1) {
+                    var newSymbol = $.extend(new Opponent(), jsonItem);
+                }
+
+                newSymbol.step = step;
+                symbols.push(newSymbol);
+            });
+
+            step.setStep(0);
+            updateSymbols(symbols);
+        };
+        
+        //create a Pastebin storage to load data from
+        //then load the json-data
+        var storage = new PastebinStorage();
+        storage.load("YcHJKgjD", callback);
     });
 });
