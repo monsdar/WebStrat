@@ -89,7 +89,9 @@ var removeSymbols = function() {
 };
 
 //And here is our document.ready which sets up the entire thing
-$(document).ready(function() {    
+$( document ).delegate("#mainpage", "pageinit", function() {
+    console.log("Mainpage loaded");
+    
     //create the step
     var step = new Step();
     
@@ -98,36 +100,46 @@ $(document).ready(function() {
     updateSymbols(symbols);
     
     //initially disable the 'previous' button
-    $('input[name="prevStep"]').attr("disabled", "disabled");
+    $("#prevStep").addClass('ui-disabled');
     
     //Set up Event Handlers for the buttons
-    $('input[name="prevStep"]').click(function(){
+    $("#prevStep").click(function(){
         step.decreaseStep();
         updateSymbols(symbols);
         
         //check if the previous-button has to be disabled
         if(step.getStep() === 0) {
-            $('input[name="prevStep"]').attr("disabled", "disabled");
+            $("#prevStep").addClass('ui-disabled');
         } else {
-            $('input[name="prevStep"]').removeAttr("disabled");
+            $("#prevStep").removeClass('ui-disabled');
         }
     });
 
-    $('input[name="nextStep"]').click(function(){
+    $("#nextStep").click(function(){
         step.increaseStep();  
         updateSymbols(symbols);
         
         //enable the previous-button
-        $('input[name="prevStep"]').removeAttr("disabled");
+        $("#prevStep").removeClass('ui-disabled');
     });
     
-    $('input[name="save"]').click(function(){
+    $("#save").click(function(){
         var apikey = $("#apikey").val();
         var json = JSON.stringify(symbols);
         
         //create a callback that works with the result
         var callback = function(data) {
-            $("#handle").val(data);
+            if(data !== "ERROR") {
+                $("#handle").val(data);
+                $("#saveResult").removeClass("negative");
+                $("#saveResult").addClass("positive");
+                $("#saveResult").text("Saved your strategy: " + data);
+            } else {
+                $("#handle").val("");
+                $("#saveResult").removeClass("positive");
+                $("#saveResult").addClass("negative");
+                $("#saveResult").text("Cannot save strategy :/");
+            }
         };
         
         //create a storage
@@ -135,7 +147,7 @@ $(document).ready(function() {
         storage.store(apikey, json, callback);
     });
     
-    $('input[name="load"]').click(function(){
+    $("#load").click(function(){
         removeSymbols();
         symbols = [];
         

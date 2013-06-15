@@ -86,14 +86,13 @@ Symbol.prototype.makeDraggable = function() {
     //make the symbols draggable, store values for them
     var symbol = this;
     
-    this.getElement().draggable({
+    symbol.getElement().draggable({
         containment: "parent",
 
         stop: function() {
             var posX = symbol.getElement().css('left');
             var posY = symbol.getElement().css('top');
             symbol.setPosition(posX, posY);
-            console.log(posX + ", " + posY);
         }
     });
 };

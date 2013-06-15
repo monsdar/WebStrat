@@ -3,6 +3,27 @@
   width:550px;
   height:500px;
   z-index:-1;
+  
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#notes {
+    height: 500px;
+    width: 50%;
+}
+
+#saveResult {
+    text-align: center;
+    font-weight: bold;
+}
+
+.positive {
+    color: #2A8500;
+}
+
+.negative {
+    color: #AB3413;
 }
 
 .ball {
