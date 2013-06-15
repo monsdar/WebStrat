@@ -93,6 +93,7 @@ Symbol.prototype.makeDraggable = function() {
             var posX = symbol.getElement().css('left');
             var posY = symbol.getElement().css('top');
             symbol.setPosition(posX, posY);
+            console.log(posX + ", " + posY);
         }
     });
 };

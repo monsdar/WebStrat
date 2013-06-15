@@ -30,7 +30,7 @@ var initSymbols = function(step) {
     //ball
     var ball = new Ball("ball", step);
     ball.side = "neutral";
-    ball.setPosition("255px", "340px");
+    ball.setPosition("285px", "340px");
     
     //friendly players
     var myplayer1 = new Friend("myplayer1", "1", step);
@@ -43,11 +43,11 @@ var initSymbols = function(step) {
     myplayer3.side = "friendly";
     myplayer4.side = "friendly";
     myplayer5.side = "friendly";
-    myplayer1.setPosition("235px", "300px");
-    myplayer2.setPosition("80px", "165px");
-    myplayer3.setPosition("370px", "140px");
-    myplayer4.setPosition("150px", "-120px");
-    myplayer5.setPosition("315px", "-155px");
+    myplayer1.setPosition("265px", "300px");
+    myplayer2.setPosition("110px", "165px");
+    myplayer3.setPosition("400px", "140px");
+    myplayer4.setPosition("180px", "-120px");
+    myplayer5.setPosition("345px", "-155px");
     
     //opponent players
     var oppplayer1 = new Opponent("oppplayer1", "1", step);
@@ -60,11 +60,11 @@ var initSymbols = function(step) {
     oppplayer3.side = "opponent";
     oppplayer4.side = "opponent";
     oppplayer5.side = "opponent";
-    oppplayer1.setPosition("235px", "90px");
-    oppplayer2.setPosition("100px", "-20px");
-    oppplayer3.setPosition("350px", "-50px");
-    oppplayer4.setPosition("170px", "-270px");
-    oppplayer5.setPosition("300px", "-300px");
+    oppplayer1.setPosition("265px", "90px");
+    oppplayer2.setPosition("130px", "-20px");
+    oppplayer3.setPosition("380px", "-50px");
+    oppplayer4.setPosition("200px", "-270px");
+    oppplayer5.setPosition("330px", "-300px");
     
     //put every Symbol into a symbol-list
     var symbols = new Array();
