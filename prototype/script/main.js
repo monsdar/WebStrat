@@ -1,192 +1,9 @@
 
-function Storage() {
-};
-Storage.prototype.store = function(data, callback) {  
-};
-Storage.prototype.load = function(URI, callback) {  
-};
 
-function PastebinStorage() {
-    Storage.call(this);
-}
-PastebinStorage.prototype = new Storage();
-PastebinStorage.prototype.constructor = PastebinStorage;
-
-PastebinStorage.prototype.store = function(apikey, data, callback) {
-    $.get("PastebinProxy.php", {type: "save", api: apikey, data: data}, function(returnedData) {
-        //trim the received data
-        returnedData = returnedData.replace(/(\r\n|\n|\r)/gm,"");
-                
-        //check if there were errors during saving
-        var errorStart = "Bad API request";
-        if( returnedData.substring(0, errorStart.length) === errorStart ) {
-            //TODO: How to handle the error?
-            console.log("Received an error: " + returnedData);
-            callback("ERROR");
-            return;
-        }
-        
-        //trim the received data, remove the URL
-        var handle = returnedData.substring(20, returnedData.length);
-        callback(handle);
-    });
-};
-PastebinStorage.prototype.load = function(URI, callback) {
-    $.get("PastebinProxy.php", {type: "load", pasteId: URI}, function(data) {
-        //trim the received data
-        data = data.replace(/(\r\n|\n|\r)/gm,"");
-        
-        //if the data is empty, just don't call the callback...
-        if(data === "") {
-            console.log("Received empty data");
-            return;
-        }
-        
-        callback(data);
-    });
-};
-
-function Step() {
-    this.currentStep = 0;
-};
-Step.prototype.increaseStep = function() {
-    this.currentStep++;
-    
-    //TODO: How to split between Business logic (this class) and View (HTML element)?
-    $("h1").text("Step: " + this.currentStep);
-};
-Step.prototype.decreaseStep = function() {
-    this.currentStep--;
-    
-    //TODO: How to split between Business logic (this class) and View (HTML element)?
-    $("h1").text("Step: " + this.currentStep);
-};
-Step.prototype.setStep = function(step) {
-    this.currentStep = step;
-    
-    //TODO: How to split between Business logic (this class) and View (HTML element)?
-    $("h1").text("Step: " + this.currentStep);
-};
-Step.prototype.getStep = function() {
-    return this.currentStep;
-};
-
-//Declare some classes to store our code into (OOP in JS baby!)
-function Symbol(identifier, name, step) {
-    this.identifier = identifier;
-    this.orientation = 0; //DEG, clockwise
-    this.name = name;
-    this.step = step;
-    this.classes = "";
-    
-    //get a starting position
-    var position = {};
-    position.posX = "0px"; //px from left
-    position.posY = "0px"; //px from top
-    this.positions = new Array();
-    this.positions[0] = position; 
-};
-
-Symbol.prototype.getHtml = function() {
-    //get the coords
-    var posX = "0px";
-    var posY = "0px";
-    var currentStep = this.step.getStep();
-    
-    if(currentStep in this.positions) {
-        posX = this.positions[currentStep].posX;
-        posY = this.positions[currentStep].posY;
-    }
-    
-    var html = "";
-    html = html + "<div ";
-    html = html + "    class='draggable " + this.classes + "' ";
-    html = html + "    style='top: " + posY + "; left: " + posX + "' ";
-    html = html + "    id='" + this.identifier + "' ";
-    html = html + ">";
-    html = html + this.name;
-    html = html + "</div>";
-    
-    return html;
-};
-
-Symbol.prototype.setPosition = function(posX, posY) {
-    var currentStep = this.step.getStep();
-    var newPosition = {};
-    newPosition.posX = posX; //px from left
-    newPosition.posY = posY; //px from top
-    this.positions[currentStep] = newPosition;
-};
-
-Symbol.prototype.getPosX = function() {
-    var currentStep = this.step.getStep();
-    
-    while(currentStep >= 0) {
-        if(currentStep in this.positions && this.positions[currentStep] !== null) {
-            return this.positions[currentStep].posX;
-        }
-        currentStep--;
-    }
-    
-    //Fallback if there are no positions saved to return
-    return "0px";
-};
-
-Symbol.prototype.getPosY = function() {
-    var currentStep = this.step.getStep();
-    
-    while(currentStep >= 0) {
-        if(currentStep in this.positions && this.positions[currentStep] !== null) {
-            return this.positions[currentStep].posY;
-        }
-        currentStep--;
-    }
-    
-    //Fallback if there are no positions saved to return
-    return "0px";
-};
-
-Symbol.prototype.getElement = function() {
-    return $("#" + this.identifier);
-};
-
-Symbol.prototype.makeDraggable = function() {
-    //make the symbols draggable, store values for them
-    var symbol = this;
-    
-    this.getElement().draggable({
-        containment: "parent",
-
-        stop: function() {
-            var posX = symbol.getElement().css('left');
-            var posY = symbol.getElement().css('top');
-            symbol.setPosition(posX, posY);
-        }
-    });
-};
-
-function Ball(identifier, step) {
-    Symbol.call(this, identifier, "", step);
-    this.classes = "ball";
-}
-Ball.prototype = new Symbol();
-Ball.prototype.constructor = Ball;
-
-function Friend(identifier, name, step) {
-    Symbol.call(this, identifier, name, step);
-    this.classes = "friend player";
-}
-Friend.prototype = new Symbol();
-Friend.prototype.constructor = Friend;
-
-function Opponent(identifier, name, step) {
-    Symbol.call(this, identifier, name, step);
-    this.classes = "opponent player";
-}
-Opponent.prototype = new Symbol();
-Opponent.prototype.constructor = Opponent;
-
+//---------------
 //some global functions which help do certain things
+//---------------
+
 //NOTE: This function uses a <div> of class .court as a parent
 var updateSymbols = function(symbols) {
     $.each(symbols, function(index, item) {
@@ -208,6 +25,7 @@ var updateSymbols = function(symbols) {
     });
 };
 
+//init some symbols to create a usable interface
 var initSymbols = function(step) {
     //ball
     var ball = new Ball("ball", step);
@@ -265,6 +83,7 @@ var initSymbols = function(step) {
     return symbols;
 };
 
+//removes all the symbols
 var removeSymbols = function() {
     $(".draggable").remove();
 };
@@ -303,7 +122,6 @@ $(document).ready(function() {
     });
     
     $('input[name="save"]').click(function(){
-        
         var apikey = $("#apikey").val();
         var json = JSON.stringify(symbols);
         
@@ -348,6 +166,7 @@ $(document).ready(function() {
         //create a Pastebin storage to load data from
         //then load the json-data
         var storage = new PastebinStorage();
-        storage.load("YcHJKgjD", callback);
+        var handle = $("#handle").val();
+        storage.load(handle, callback);
     });
 });
