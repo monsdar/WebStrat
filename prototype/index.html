@@ -14,14 +14,19 @@
     <title>WebTax prototype</title>
 </head>
 <body>
-  <h1>Step: 0</h1>
-  <div class="court"></div>
+    <div id="stepWrapper">
+        <input type="button" name="prevStep" value="Previous Step"/>
+        <p>Step: 0</p>
+        <input type="button" name="nextStep" value="Next Step"/>
+    </div>
   
-  <input type="button" name="prevStep" value="Previous Step" />
-  <input type="button" name="nextStep" value="Next Step" />
-  <input type="button" name="save" value="Save" />
-  <input type="button" name="load" value="Load" />
+    <div class="court"></div>
   
-  <textarea id="outputText" cols="50" rows="10"></textarea>
+    <div id="storageWrapper">
+        <input type="text" id="apikey" value="Pastebin.com API Key" />
+        <input type="button" name="save" value="Save" />
+        <input type="text" id="handle" value="Strategy Handle" />
+        <input type="button" name="load" value="Load" />
+    </div>
 </body>
 </html>

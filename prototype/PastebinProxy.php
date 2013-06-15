@@ -37,12 +37,10 @@
         echo getData($url);
     }
     else if($_GET['type'] == 'save')
-    {
-        $handle = "";
-        
+    {        
         //Query pastebin.com here to store the data and get a handle to it
         //NOTE: How to protect the API key? It's OpenSource, so it probably isn't a good idea to put it in here...
-        $api_dev_key           = '98e9a21186d41e7e91c7b13eb29907d1';
+        $api_dev_key           = $_GET['api'];
         $api_paste_code        = $_GET['data'];
         $api_paste_private     = '0'; // 0=public 1=unlisted 2=private
         $api_paste_name        = 'WebStrat Strategy'; // name or title of your paste

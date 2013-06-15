@@ -12,15 +12,36 @@ function PastebinStorage() {
 PastebinStorage.prototype = new Storage();
 PastebinStorage.prototype.constructor = PastebinStorage;
 
-PastebinStorage.prototype.store = function(data, callback) {
-    $.get("PastebinProxy.php", {type: "save", data: data}, function(returnedData) {
-        console.log("Received data: ");
-        console.log(returnedData);
-        callback(returnedData);
+PastebinStorage.prototype.store = function(apikey, data, callback) {
+    $.get("PastebinProxy.php", {type: "save", api: apikey, data: data}, function(returnedData) {
+        //trim the received data
+        returnedData = returnedData.replace(/(\r\n|\n|\r)/gm,"");
+                
+        //check if there were errors during saving
+        var errorStart = "Bad API request";
+        if( returnedData.substring(0, errorStart.length) === errorStart ) {
+            //TODO: How to handle the error?
+            console.log("Received an error: " + returnedData);
+            callback("ERROR");
+            return;
+        }
+        
+        //trim the received data, remove the URL
+        var handle = returnedData.substring(20, returnedData.length);
+        callback(handle);
     });
 };
 PastebinStorage.prototype.load = function(URI, callback) {
     $.get("PastebinProxy.php", {type: "load", pasteId: URI}, function(data) {
+        //trim the received data
+        data = data.replace(/(\r\n|\n|\r)/gm,"");
+        
+        //if the data is empty, just don't call the callback...
+        if(data === "") {
+            console.log("Received empty data");
+            return;
+        }
+        
         callback(data);
     });
 };
@@ -140,8 +161,6 @@ Symbol.prototype.makeDraggable = function() {
             var posX = symbol.getElement().css('left');
             var posY = symbol.getElement().css('top');
             symbol.setPosition(posX, posY);
-            
-            console.log(posX + ", " + posY);
         }
     });
 };
@@ -284,16 +303,18 @@ $(document).ready(function() {
     });
     
     $('input[name="save"]').click(function(){
+        
+        var apikey = $("#apikey").val();
         var json = JSON.stringify(symbols);
         
         //create a callback that works with the result
         var callback = function(data) {
-            $("textarea#outputText").val(data);
+            $("#handle").val(data);
         };
         
         //create a storage
         var storage = new PastebinStorage();
-        storage.store(json, callback);
+        storage.store(apikey, json, callback);
     });
     
     $('input[name="load"]').click(function(){
