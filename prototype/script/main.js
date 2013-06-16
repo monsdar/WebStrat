@@ -25,62 +25,8 @@ var updateSymbols = function(symbols) {
     });
 };
 
-//init some symbols to create a usable interface
-var initSymbols = function(step) {
-    //ball
-    var ball = new Ball("ball", step);
-    ball.side = "neutral";
-    ball.setPosition("285px", "340px");
-    
-    //friendly players
-    var myplayer1 = new Friend("myplayer1", "1", step);
-    var myplayer2 = new Friend("myplayer2", "2", step);
-    var myplayer3 = new Friend("myplayer3", "3", step);
-    var myplayer4 = new Friend("myplayer4", "4", step);
-    var myplayer5 = new Friend("myplayer5", "5", step);
-    myplayer1.side = "friendly";
-    myplayer2.side = "friendly";
-    myplayer3.side = "friendly";
-    myplayer4.side = "friendly";
-    myplayer5.side = "friendly";
-    myplayer1.setPosition("265px", "300px");
-    myplayer2.setPosition("110px", "165px");
-    myplayer3.setPosition("400px", "140px");
-    myplayer4.setPosition("180px", "-120px");
-    myplayer5.setPosition("345px", "-155px");
-    
-    //opponent players
-    var oppplayer1 = new Opponent("oppplayer1", "1", step);
-    var oppplayer2 = new Opponent("oppplayer2", "2", step);
-    var oppplayer3 = new Opponent("oppplayer3", "3", step);
-    var oppplayer4 = new Opponent("oppplayer4", "4", step);
-    var oppplayer5 = new Opponent("oppplayer5", "5", step);
-    oppplayer1.side = "opponent";
-    oppplayer2.side = "opponent";
-    oppplayer3.side = "opponent";
-    oppplayer4.side = "opponent";
-    oppplayer5.side = "opponent";
-    oppplayer1.setPosition("265px", "90px");
-    oppplayer2.setPosition("130px", "-20px");
-    oppplayer3.setPosition("380px", "-50px");
-    oppplayer4.setPosition("200px", "-270px");
-    oppplayer5.setPosition("330px", "-300px");
-    
-    //put every Symbol into a symbol-list
-    var symbols = new Array();
-    symbols.push(ball);
-    symbols.push(myplayer1);
-    symbols.push(myplayer2);
-    symbols.push(myplayer3);
-    symbols.push(myplayer4);
-    symbols.push(myplayer5);
-    symbols.push(oppplayer1);
-    symbols.push(oppplayer2);
-    symbols.push(oppplayer3);
-    symbols.push(oppplayer4);
-    symbols.push(oppplayer5);
-        
-    return symbols;
+var updateTitle = function(title) {
+    $("#title").text("WebStrat - " + title);
 };
 
 //removes all the symbols
@@ -90,14 +36,15 @@ var removeSymbols = function() {
 
 //And here is our document.ready which sets up the entire thing
 $( document ).delegate("#mainpage", "pageinit", function() {
-    console.log("Mainpage loaded");
     
     //create the step
     var step = new Step();
+    var strategy = new Strategy();
+    strategy.initSymbols(step);
     
     //append the items to the court
-    var symbols = initSymbols(step);
-    updateSymbols(symbols);
+    updateSymbols(strategy.symbols);
+    updateTitle(strategy.name);
     
     //initially disable the 'previous' button
     $("#prevStep").addClass('ui-disabled');
@@ -105,7 +52,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     //Set up Event Handlers for the buttons
     $("#prevStep").click(function(){
         step.decreaseStep();
-        updateSymbols(symbols);
+        updateSymbols(strategy.symbols);
         
         //check if the previous-button has to be disabled
         if(step.getStep() === 0) {
@@ -116,8 +63,8 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     });
 
     $("#nextStep").click(function(){
-        step.increaseStep();  
-        updateSymbols(symbols);
+        step.increaseStep();
+        updateSymbols(strategy.symbols);
         
         //enable the previous-button
         $("#prevStep").removeClass('ui-disabled');
@@ -125,7 +72,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     
     $("#save").click(function(){
         var apikey = $("#apikey").val();
-        var json = JSON.stringify(symbols);
+        var json = JSON.stringify(strategy);
         
         //create a callback that works with the result
         var callback = function(data) {
@@ -143,17 +90,25 @@ $( document ).delegate("#mainpage", "pageinit", function() {
         };
         
         //create a storage
-        var storage = new PastebinStorage();
-        storage.store(apikey, json, callback);
+        //var storage = new PastebinStorage();
+        //storage.store(apikey, json, callback);
+        var storage = new ConsoleStorage();
+        storage.store(json, callback);
     });
     
     $("#load").click(function(){
         removeSymbols();
-        symbols = [];
         
         //create the callback which is called as soon as the data is received
         var callback = function(data) {
-            var jsonSymbols = jQuery.parseJSON( data );      
+            //we need to convert from a JSON Object to our special classes
+            //first get the Strategy-object
+            var jsonStrategy = jQuery.parseJSON( data );
+            strategy = $.extend(new Strategy(), jsonStrategy);
+            
+            //then revamp the Symbols
+            var jsonSymbols = strategy.symbols;
+            strategy.symbols = new Array();
             $.each(jsonSymbols, function(index, jsonItem) {
                 var newSymbol;
 
@@ -168,16 +123,19 @@ $( document ).delegate("#mainpage", "pageinit", function() {
                 }
 
                 newSymbol.step = step;
-                symbols.push(newSymbol);
+                strategy.symbols.push(newSymbol);
             });
 
             step.setStep(0);
-            updateSymbols(symbols);
+            updateSymbols(strategy.symbols);
+            updateTitle(strategy.name);
         };
         
         //create a Pastebin storage to load data from
         //then load the json-data
-        var storage = new PastebinStorage();
+        //var storage = new PastebinStorage();
+        var storage = new ConsoleStorage();
+        
         var handle = $("#handle").val();
         storage.load(handle, callback);
     });

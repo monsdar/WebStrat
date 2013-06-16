@@ -15,8 +15,7 @@ PastebinStorage.prototype.store = function(apikey, data, callback) {
         returnedData = returnedData.replace(/(\r\n|\n|\r)/gm,"");
                 
         //check if there were errors during saving
-        var errorStart = "Bad API request";
-        if( returnedData.substring(0, errorStart.length) === errorStart ) {
+        if( returnedData.length !== 28 ) {
             //TODO: How to handle the error?
             console.log("Received an error: " + returnedData);
             callback("ERROR");
