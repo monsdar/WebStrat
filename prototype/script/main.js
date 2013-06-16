@@ -4,6 +4,10 @@
 //some global functions which help do certain things
 //---------------
 
+//Step and Strategy which this application uses
+var step = new Step();
+var strategy = new Strategy();
+
 //NOTE: This function uses a <div> of class .court as a parent
 var updateSymbols = function(symbols) {
     $.each(symbols, function(index, item) {
@@ -49,19 +53,56 @@ var removeSymbols = function() {
     $(".draggable").remove();
 };
 
+var loadStrategy = function(input) {
+    removeSymbols();
+
+    //create the callback which is called as soon as the data is received
+    var callback = function(data) {
+        //we need to convert from a JSON Object to our special classes
+        //first get the Strategy-object
+        var jsonStrategy = jQuery.parseJSON( data );
+        strategy = $.extend(new Strategy(), jsonStrategy);
+
+        //then revamp the Symbols
+        var jsonSymbols = strategy.symbols;
+        strategy.symbols = new Array();
+        $.each(jsonSymbols, function(index, jsonItem) {
+            var newSymbol;
+
+            //init the symbol with its right childclass
+            //TODO: Is there a way to do this automatically?
+            if(jsonItem.classes.indexOf("ball") !== -1) {
+                var newSymbol = $.extend(new Ball(), jsonItem);
+            } else if(jsonItem.classes.indexOf("friend") !== -1) {
+                var newSymbol = $.extend(new Friend(), jsonItem);
+            } else if(jsonItem.classes.indexOf("opponent") !== -1) {
+                var newSymbol = $.extend(new Opponent(), jsonItem);
+            }
+
+            newSymbol.step = step;
+            strategy.symbols.push(newSymbol);
+        });
+
+        step.setStep(0);
+        updateSymbols(strategy.symbols);
+        updateNote(strategy.notes, step);
+        updateTitle(strategy.name);
+    };
+
+    //check which storage to use
+    if(input.length === 8) {
+        var storage = new PastebinStorage();
+        storage.load(input, callback);
+    } else {
+        //use Archive-storage as a fallback
+        var storage = new ArchiveStorage();
+        storage.load(input, callback);
+    }
+};
+
+
 //And here is our document.ready which sets up the entire thing
 $( document ).delegate("#mainpage", "pageinit", function() {
-    
-    //create the step
-    var step = new Step();
-    var strategy = new Strategy();
-    strategy.initSymbols(step);
-    strategy.initNotes();
-    
-    //append the items to the court
-    updateSymbols(strategy.symbols);
-    updateNote(strategy.notes, step);
-    updateTitle(strategy.name);
     
     //make the title and notes-field editable
     var changeNote = function(value, settings) {
@@ -103,7 +144,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
         }
     });
 
-    $("#nextStep").click(function(){
+    $("#nextStep").click(function(){        
         step.increaseStep();
         updateNote(strategy.notes, step);
         updateSymbols(strategy.symbols);
@@ -117,59 +158,30 @@ $( document ).delegate("#mainpage", "pageinit", function() {
         
         //create a callback that works with the result
         var callback = function(data) {
-            if(data !== "ERROR") {
-                $("#strategyInput").val(data);
-                $("#strategyOutput").text(data);
-            } else {
-                $("#strategyInput").val("");
-                $("#strategyOutput").text("There was an error, cannot store your data...");
-            }
+            $("#strategyInput").val(data);
+            $("#strategyOutput").text(data);
         };
         
         //create a storage
-        var storage = new ArchiveStorage();
+        var storage = new ConsoleStorage();
         storage.store(json, callback);
     });
     
     $("#load").click(function(){
-        removeSymbols();
-        
-        //create the callback which is called as soon as the data is received
-        var callback = function(data) {
-            //we need to convert from a JSON Object to our special classes
-            //first get the Strategy-object
-            var jsonStrategy = jQuery.parseJSON( data );
-            strategy = $.extend(new Strategy(), jsonStrategy);
-            
-            //then revamp the Symbols
-            var jsonSymbols = strategy.symbols;
-            strategy.symbols = new Array();
-            $.each(jsonSymbols, function(index, jsonItem) {
-                var newSymbol;
-
-                //init the symbol with its right childclass
-                //TODO: Is there a way to do this automatically?
-                if(jsonItem.classes.indexOf("ball") !== -1) {
-                    var newSymbol = $.extend(new Ball(), jsonItem);
-                } else if(jsonItem.classes.indexOf("friend") !== -1) {
-                    var newSymbol = $.extend(new Friend(), jsonItem);
-                } else if(jsonItem.classes.indexOf("opponent") !== -1) {
-                    var newSymbol = $.extend(new Opponent(), jsonItem);
-                }
-
-                newSymbol.step = step;
-                strategy.symbols.push(newSymbol);
-            });
-
-            step.setStep(0);
-            updateSymbols(strategy.symbols);
-            updateNote(strategy.notes, step);
-            updateTitle(strategy.name);
-        };
-        
-        //create a Pastebin storage to load data from
-        var storage = new ArchiveStorage();
         var input = $("#strategyInput").val();
-        storage.load(input, callback);
+        loadStrategy(input);
     });
+    
+    //check if a new strategy should be created or to load one via URL
+    var input = $.url().param('pastebin');
+    if( input === undefined ) {
+        strategy.initSymbols(step);
+        strategy.initNotes();
+        
+        updateSymbols(strategy.symbols);
+        updateNote(strategy.notes, step);
+        updateTitle(strategy.name);
+    } else {
+        loadStrategy(input);
+    }
 });
