@@ -18,14 +18,6 @@
     font-weight: bold;
 }
 
-.positive {
-    color: #2A8500;
-}
-
-.negative {
-    color: #AB3413;
-}
-
 .ball {
   background-color: #E06D1B;
   width: 20px;

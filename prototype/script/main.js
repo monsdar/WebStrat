@@ -71,28 +71,21 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     });
     
     $("#save").click(function(){
-        var apikey = $("#apikey").val();
         var json = JSON.stringify(strategy);
         
         //create a callback that works with the result
         var callback = function(data) {
             if(data !== "ERROR") {
-                $("#handle").val(data);
-                $("#saveResult").removeClass("negative");
-                $("#saveResult").addClass("positive");
-                $("#saveResult").text("Saved your strategy: " + data);
+                $("#strategyInput").val(data);
+                $("#strategyOutput").text(data);
             } else {
-                $("#handle").val("");
-                $("#saveResult").removeClass("positive");
-                $("#saveResult").addClass("negative");
-                $("#saveResult").text("Cannot save strategy :/");
+                $("#strategyInput").val("");
+                $("#strategyOutput").text("There was an error, cannot store your data...");
             }
         };
         
         //create a storage
-        //var storage = new PastebinStorage();
-        //storage.store(apikey, json, callback);
-        var storage = new ConsoleStorage();
+        var storage = new ArchiveStorage();
         storage.store(json, callback);
     });
     
@@ -132,11 +125,8 @@ $( document ).delegate("#mainpage", "pageinit", function() {
         };
         
         //create a Pastebin storage to load data from
-        //then load the json-data
-        //var storage = new PastebinStorage();
-        var storage = new ConsoleStorage();
-        
-        var handle = $("#handle").val();
-        storage.load(handle, callback);
+        var storage = new ArchiveStorage();
+        var input = $("#strategyInput").val();
+        storage.load(input, callback);
     });
 });

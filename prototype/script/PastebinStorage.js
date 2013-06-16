@@ -27,18 +27,18 @@ PastebinStorage.prototype.store = function(apikey, data, callback) {
         callback(handle);
     });
 };
-PastebinStorage.prototype.load = function(URI, callback) {
-    $.get("PastebinProxy.php", {type: "load", pasteId: URI}, function(data) {
+PastebinStorage.prototype.load = function(data, callback) {
+    $.get("PastebinProxy.php", {type: "load", pasteId: data}, function(receivedData) {
         //trim the received data
-        data = data.replace(/(\r\n|\n|\r)/gm,"");
+        receivedData = receivedData.replace(/(\r\n|\n|\r)/gm,"");
         
         //if the data is empty, just don't call the callback...
-        if(data === "") {
+        if(receivedData === "") {
             console.log("Received empty data");
             return;
         }
         
-        callback(data);
+        callback(receivedData);
     });
 };
 
