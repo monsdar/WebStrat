@@ -7,6 +7,10 @@ function Strategy() {
     this.notes = new Array();
 };
 
+Strategy.prototype.initNotes = function() {
+    this.notes[0] = "Click here to enter notes for your strategy.<br/>Each step has its own note.<br/><br/><em>You can use HTML to format your messages.</em>";
+};
+
 Strategy.prototype.initSymbols = function(step) {
     //ball
     var ball = new Ball("ball", step);

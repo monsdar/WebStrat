@@ -25,8 +25,23 @@ var updateSymbols = function(symbols) {
     });
 };
 
+var updateNote = function(notes, step) {
+    var currentStep = step.getStep();
+    while(currentStep >= 0) {
+        if(currentStep in notes && notes[currentStep] !== null) {
+            $("#notes").html(notes[currentStep]);
+            return;
+        }
+        currentStep--;
+    }
+    
+    //Fallback if there are no positions saved to return
+    $("#notes").html("");
+};
+
 var updateTitle = function(title) {
-    $("#title").text("WebStrat - " + title);
+    $("#pagetitle").text("WebStrat - " + title);
+    $("#title").text(title);
 };
 
 //removes all the symbols
@@ -41,10 +56,35 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     var step = new Step();
     var strategy = new Strategy();
     strategy.initSymbols(step);
+    strategy.initNotes();
     
     //append the items to the court
     updateSymbols(strategy.symbols);
+    updateNote(strategy.notes, step);
     updateTitle(strategy.name);
+    
+    //make the title and notes-field editable
+    var changeNote = function(value, settings) {
+        strategy.notes[step.getStep()] = value;
+        return value;
+    };
+    $('#notes').editable(changeNote, 
+    { 
+        type      : 'textarea',
+        submit    : 'OK'
+    });
+    
+    var changeTitle = function(value, settings) {
+        $("#pagetitle").text("WebStrat - " + value);
+        strategy.name = value;
+        return value;
+    };
+    $('#title').editable(changeTitle, 
+    { 
+        type      : 'text',
+        submit    : 'OK'
+    });
+    
     
     //initially disable the 'previous' button
     $("#prevStep").addClass('ui-disabled');
@@ -52,6 +92,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
     //Set up Event Handlers for the buttons
     $("#prevStep").click(function(){
         step.decreaseStep();
+        updateNote(strategy.notes, step);
         updateSymbols(strategy.symbols);
         
         //check if the previous-button has to be disabled
@@ -64,6 +105,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
 
     $("#nextStep").click(function(){
         step.increaseStep();
+        updateNote(strategy.notes, step);
         updateSymbols(strategy.symbols);
         
         //enable the previous-button
@@ -121,6 +163,7 @@ $( document ).delegate("#mainpage", "pageinit", function() {
 
             step.setStep(0);
             updateSymbols(strategy.symbols);
+            updateNote(strategy.notes, step);
             updateTitle(strategy.name);
         };
         
