@@ -153,12 +153,11 @@ $( document ).delegate("#mainpage", "pageinit", function() {
         $("#prevStep").removeClass('ui-disabled');
     });
     
-    $("#save").click(function(){
+    $("#generateJson").click(function(){
         var json = JSON.stringify(strategy);
         
         //create a callback that works with the result
         var callback = function(data) {
-            $("#strategyInput").val(data);
             $("#strategyOutput").text(data);
         };
         

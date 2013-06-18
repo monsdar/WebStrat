@@ -77,9 +77,8 @@
             <h1>Load Strategy</h1>
         </div>
         <div data-role="content">
-            <textarea id="strategyInput">
-                Enter the strategy you received from your teammate into this textfield...
-            </textarea>
+            <p>Enter the handle you received from your teammate into this textfield...</p>
+            <input type="text" id="strategyInput" />
             <a href="#" id="load" data-role="button" data-rel="back">Load</a>
         </div>
 	<div data-role="footer"></div>        
@@ -90,9 +89,14 @@
             <h1>Save Strategy</h1>
         </div>
         <div data-role="content">
-            <textarea id="strategyOutput">This field will contain your stored strategy. Simply copy it and share it with your teammates.</textarea>
-            <a href="#" id="save" data-role="button">Save</a>
-            <a href="#" data-role="button" data-rel="back">Close</a>
+            <p>Here you can save your strategy. First click on <b>Generate</b> to build up the code:</p>
+            <a href="#" id="generateJson" data-role="button">Generate</a>
+            <textarea id="strategyOutput">This field will contain your stored strategy.</textarea>
+            <p>After generating go to <a href="http://www.pastebin.com">Pastebin.com</a> and enter the above text there. Upload it.</p>
+            <p>There will be a 8-character long code in the URL afterwards. This is the handle to your data. Share it with your teammates and everyone will be able to see our strategy.</p>
+            <p><em>You can also share your strategy directly via link, just append your handle to the link:</em></p>
+            <p><b>http://webtax.nilsbrinkmann.com/?pastebin=HANDLE</b></p>
+            <a href="#" data-role="button" data-rel="back">Done</a>
         </div>
 	<div data-role="footer"></div>        
     </div>
